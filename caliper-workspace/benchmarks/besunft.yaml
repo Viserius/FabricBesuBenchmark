@@ -1,0 +1,47 @@
+params:
+    numberOfAssets: &numberOfAssets 500 # multiple of number of workers
+    numberOfWarmupTxs: &numberOfWarmupTxs 10000 # multiple of number of assets
+    numberOfTxs: &numberOfTxs 50000 # multiple of number of assets
+    tps: &tps 80
+    contract: &contract besunft
+
+test:
+    workers:
+        type: local
+        number: 4
+    rounds:
+    - label: createAssets
+      txNumber: *numberOfAssets
+      rateControl: { type: 'fixed-rate', opts: { tps: *tps } }
+      workload:
+          module: ./workload/besunft-create.js
+          arguments:
+              numberOfAssets: *numberOfAssets
+              contract: *contract
+    - label: warmup
+      txNumber: *numberOfWarmupTxs
+      rateControl: { type: 'fixed-rate', opts: { tps: *tps } }
+      workload:
+          module: ./workload/besunft-transfer.js
+          arguments:
+              numberOfAssets: *numberOfAssets
+              contract: *contract
+              numberOfWarmupTxs: *numberOfWarmupTxs
+              isWarmup: 1
+    - label: transfer
+      txNumber: *numberOfTxs
+      rateControl: { type: 'fixed-rate', opts: { tps: *tps } }
+      workload:
+          module: ./workload/besunft-transfer.js
+          arguments:
+              numberOfAssets: *numberOfAssets
+              contract: *contract
+              numberOfWarmupTxs: *numberOfWarmupTxs
+              isWarmup: 0
+monitors:
+  resource:
+  - module: docker
+    options:
+      interval: 5
+      containers:
+      - all

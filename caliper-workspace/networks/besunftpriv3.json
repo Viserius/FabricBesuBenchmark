@@ -1,0 +1,30 @@
+{
+  "caliper": {
+    "blockchain": "ethereum"
+  },
+  "ethereum": {
+    "url": "ws://localhost:20001",
+    "contractDeployerAddress": "0xD1cf9D73a91DE6630c2bb068Ba5fDdF9F0DEac09",
+    "contractDeployerAddressPrivateKey": "0x797c13f7235c627f6bd013dc17fff4c12213ab49abcf091f77c83f16db10e90b",
+    "fromAddressSeed": "0x3f841bf589fdf83a521e55d51afddc34fa65351161eead24f064855fc29c9580",
+    "transactionConfirmationBlocks": 1,
+    "chainId": 1337,
+    "privacy": {
+      "group": {
+        "groupType": "legacy",
+        "privateFrom": "A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=",
+        "privateFor": ["A1aVtMxLCUHmBVHXoZzzBgPbW/wj5axDpW9X8l91SGo=", "Ko2bVqD+nNlNYL5EE7y3IdOnviftjiizpjRt+HTuFBs=", "k2zXEin4Ip/qBGlRkJejnGWdP9cjkK+DAvKNW31L2C8="]
+      }
+    },
+    "contracts": {
+      "besunft": {
+        "path": "./contracts/besunft.json",
+        "gas": {
+          "createAsset": 200000,
+          "transferFrom": 100000
+        },
+        "private": "group"
+      }
+    }
+  }
+}

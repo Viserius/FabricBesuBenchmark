@@ -1,0 +1,437 @@
+---
+version: '3.6'
+
+x-besu-def:
+  &besu-def
+  restart: "on-failure"
+  image: hyperledger/besu:${BESU_VERSION:-latest}
+  environment:
+    - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
+    - JAVA_TOOL_OPTIONS=-Xmx1G
+    - JDK_JAVA_OPTIONS=-Xmx1G
+  entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      while [ ! -f "/opt/besu/public-keys/bootnode_pubkey" ]; do sleep 5; done ;
+      /opt/besu/bin/besu \
+      --config-file=/config/config.toml \
+      --p2p-host=$$(hostname -i) \
+      --genesis-file=/config/genesis.json \
+      --node-private-key-file=/opt/besu/keys/key \
+      --min-gas-price=0 \
+      --rpc-http-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} \
+      --goquorum-compatibility-enabled \
+      --rpc-ws-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} ;
+
+x-orion-def:
+  &orion-def
+  image: consensys/quorum-orion:${QUORUM_ORION_VERSION:-latest}
+  command: ["/config/orion.conf"]
+
+x-tessera-def:
+  &tessera-def
+  image: quorumengineering/tessera:${QUORUM_TESSERA_VERSION:-21.1.1}
+  expose:
+    - 9000
+    - 9080
+  restart: "no"
+  healthcheck:
+    test: ["CMD-SHELL", "[ -S /data/tm/tm.ipc ] || exit 1"]
+    interval: 3s
+    timeout: 3s
+    retries: 20
+    start_period: 5s
+  entrypoint:
+    - /bin/sh
+    - -c
+    - |
+      mkdir -p /var/log/tessera/;
+      mkdir /data/tm/;
+      cp /config/keys/nodeKey.* /data/tm/ ;
+
+          cat <<EOF > /data/tm/tessera-config-09.json
+          {
+            "useWhiteList": false,
+            "jdbc": {
+              "username": "sa",
+              "password": "",
+              "url": "jdbc:h2:./data/tm/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
+              "autoCreateTables": true
+            },
+            "serverConfigs":[
+            {
+              "app":"ThirdParty",
+              "enabled": true,
+              "serverAddress": "http://$$(hostname -i):8888",
+              "communicationType" : "REST"
+            },
+            {
+              "app":"Q2T",
+              "enabled": true,
+              "serverAddress": "unix:/data/tm/tm.ipc",
+              "communicationType" : "REST"
+            },
+            {
+              "app":"P2P",
+              "enabled": true,
+              "serverAddress": "http://$$(hostname -i):8080",
+              "sslConfig": {
+                "tls": "OFF"
+              },
+              "communicationType" : "REST"
+            }
+            ],
+            "peer": [
+               {
+                   "url": "http://member1orion:8080"
+               },
+               {
+                   "url": "http://member2orion:8080"
+               },
+               {
+                   "url": "http://member3orion:8080"
+               }
+            ],
+            "keys": {
+              "passwords": [],
+              "keyData": [
+                {
+                  "config": $$(cat /data/tm/nodeKey.key),
+                  "publicKey": "$$(cat /data/tm/nodeKey.pub)"
+                }
+              ]
+            },
+            "alwaysSendTo": []
+          }
+      EOF
+          cat /data/tm/tessera-config-09.json
+          java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile /data/tm/tessera-config-09.json -o mode="orion"
+
+# x-ethsignerProxy-def:
+#   &ethsignerProxy-def
+#   image: consensys/quorum-ethsigner:${QUORUM_ETHSIGNER_VERSION:-latest}
+#   command: [
+#     "--chain-id=2018",
+#     "--http-listen-host=0.0.0.0",
+#     "--downstream-http-port=8545",
+#     "--downstream-http-host=rpcnode",
+#     "file-based-signer",
+#     "-k",
+#     "/opt/ethsigner/keyfile",
+#     "-p",
+#     "/opt/ethsigner/passwordfile"
+#   ]
+#   ports:
+#     - 8545
+
+services:
+  member1besu:
+    << : *besu-def
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        /opt/besu/bin/besu public-key export --to=/tmp/bootnode_pubkey;
+        /opt/besu/bin/besu \
+        --config-file=/config/config.toml \
+        --p2p-host=$$(hostname -i) \
+        --genesis-file=/config/genesis.json \
+        --node-private-key-file=/opt/besu/keys/key \
+        --min-gas-price=0 \
+        --privacy-enabled \
+        --privacy-url=http://member1orion:8888 \
+        --privacy-public-key-file=/config/orion/orion.pub \
+        --privacy-onchain-groups-enabled=${PRIVACY_ONCHAIN_GROUPS_ENABLED:-false} \
+        --rpc-http-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} \
+        --goquorum-compatibility-enabled \
+        --rpc-ws-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} ;
+    volumes:
+      - public-keys:/tmp/
+      - ./config/besu/config.toml:/config/config.toml
+      - ./config/besu/permissions_config${NETWORK_SIZE}.toml:/config/permissions_config.toml
+      - ./config/besu/static-nodes${NETWORK_SIZE}.json:/config/static-nodes.json
+      - ./config/besu/log-config.xml:/config/log-config.xml
+      - ./logs/besu:/tmp/besu
+      - ./config/besu/${BESU_CONS_ALGO:-ibft2}Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/member1/keys:/opt/besu/keys
+      - ./config/orion/networkFiles/orion1/nodeKey.pub:/config/orion/orion.pub
+    depends_on:
+      - member1orion
+    ports:
+      - 20000:8545/tcp
+      - 20001:8546/tcp
+    networks:
+      quorum-dev-quickstart:
+        ipv4_address: 172.16.239.16
+
+  member2besu:
+    << : *besu-def
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        while [ ! -f "/opt/besu/public-keys/bootnode_pubkey" ]; do sleep 5; done ;
+        /opt/besu/bin/besu \
+        --config-file=/config/config.toml \
+        --p2p-host=$$(hostname -i) \
+        --genesis-file=/config/genesis.json \
+        --node-private-key-file=/opt/besu/keys/key \
+        --min-gas-price=0 \
+        --privacy-enabled \
+        --privacy-url=http://member2orion:8888 \
+        --privacy-public-key-file=/config/orion/orion.pub \
+        --privacy-onchain-groups-enabled=${PRIVACY_ONCHAIN_GROUPS_ENABLED:-false} \
+        --rpc-http-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} \
+        --goquorum-compatibility-enabled \
+        --rpc-ws-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} ;
+    volumes:
+      - public-keys:/opt/besu/public-keys/
+      - ./config/besu/config.toml:/config/config.toml
+      - ./config/besu/permissions_config${NETWORK_SIZE}.toml:/config/permissions_config.toml
+      - ./config/besu/static-nodes${NETWORK_SIZE}.json:/config/static-nodes.json
+      - ./config/besu/log-config.xml:/config/log-config.xml
+      - ./logs/besu:/tmp/besu
+      - ./config/besu/${BESU_CONS_ALGO:-ibft2}Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/member2/keys:/opt/besu/keys
+      - ./config/orion/networkFiles/orion2/nodeKey.pub:/config/orion/orion.pub
+    depends_on:
+      - member2orion
+    ports:
+      - 20002:8545/tcp
+      - 20003:8546/tcp
+    networks:
+      quorum-dev-quickstart:
+        ipv4_address: 172.16.239.17
+
+  member3besu:
+    << : *besu-def
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        while [ ! -f "/opt/besu/public-keys/bootnode_pubkey" ]; do sleep 5; done ;
+        /opt/besu/bin/besu \
+        --config-file=/config/config.toml \
+        --p2p-host=$$(hostname -i) \
+        --genesis-file=/config/genesis.json \
+        --node-private-key-file=/opt/besu/keys/key \
+        --min-gas-price=0 \
+        --privacy-enabled \
+        --privacy-url=http://member3orion:8888 \
+        --privacy-public-key-file=/config/orion/orion.pub \
+        --privacy-onchain-groups-enabled=${PRIVACY_ONCHAIN_GROUPS_ENABLED:-false} \
+        --rpc-http-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} \
+        --goquorum-compatibility-enabled \
+        --rpc-ws-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} ;
+    volumes:
+      - public-keys:/opt/besu/public-keys/
+      - ./config/besu/config.toml:/config/config.toml
+      - ./config/besu/permissions_config${NETWORK_SIZE}.toml:/config/permissions_config.toml
+      - ./config/besu/static-nodes${NETWORK_SIZE}.json:/config/static-nodes.json
+      - ./config/besu/log-config.xml:/config/log-config.xml
+      - ./logs/besu:/tmp/besu
+      - ./config/besu/${BESU_CONS_ALGO:-ibft2}Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/member3/keys:/opt/besu/keys
+      - ./config/orion/networkFiles/orion3/nodeKey.pub:/config/orion/orion.pub
+    depends_on:
+      - member3orion
+    ports:
+      - 20004:8545/tcp
+      - 20005:8546/tcp
+    networks:
+      quorum-dev-quickstart:
+        ipv4_address: 172.16.239.18
+
+  # member1orion:
+  #   << : *orion-def
+  #   environment:
+  #     - ORION_OTHERNODES=http://member2orion:8080/,http://member3orion:8080/${ORION_OTHER_NODES}
+  #     - ORION_NODEURL=http://member1orion:8080
+  #     - ORION_CLIENTURL=http://member1orion:8888
+  #     - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
+  #     - JAVA_TOOL_OPTIONS=-Xmx2G
+  #     - JDK_JAVA_OPTIONS=-Xmx2G
+  #     - JAVA_OPTS=-Xmx2G
+  #   volumes:
+  #     - ./config/orion/orion.conf:/config/orion.conf
+  #     - ./config/orion/networkFiles/orion1:/keys/
+  #     - ./logs/orion:/tmp/orion
+  #     - ./config/orion/log-config.xml:/config/log-config.xml
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.26
+
+  member1orion:
+    << : *tessera-def
+    environment:
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - TESSERA_CONFIG_TYPE="-09"
+      - NODE_ID=1
+    volumes:
+      - ./config/orion/networkFiles/orion1:/config/keys
+      - member1volume:/data
+    networks:
+      quorum-dev-quickstart:
+        ipv4_address: 172.16.239.26
+
+  # member2orion:
+  #   << : *orion-def
+  #   environment:
+  #     - ORION_OTHERNODES=http://member1orion:8080/,http://member3orion:8080/${ORION_OTHER_NODES}
+  #     - ORION_NODEURL=http://member2orion:8080
+  #     - ORION_CLIENTURL=http://member2orion:8888
+  #     - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
+  #     - JAVA_TOOL_OPTIONS=-Xmx2G
+  #     - JDK_JAVA_OPTIONS=-Xmx2G
+  #     - JAVA_OPTS=-Xmx2G
+  #   volumes:
+  #     - ./config/orion/orion.conf:/config/orion.conf
+  #     - ./config/orion/networkFiles/orion2:/keys/
+  #     - ./logs/orion:/tmp/orion
+  #     - ./config/orion/log-config.xml:/config/log-config.xml
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.27
+
+  member2orion:
+    << : *tessera-def
+    environment:
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - TESSERA_CONFIG_TYPE="-09"
+      - NODE_ID=1
+    volumes:
+      - ./config/orion/networkFiles/orion2:/config/keys
+      - member2volume:/data
+    networks:
+      quorum-dev-quickstart:
+        ipv4_address: 172.16.239.27
+
+  # member3orion:
+  #   << : *orion-def
+  #   environment:
+  #     - ORION_OTHERNODES=http://member1orion:8080/,http://member2orion:8080/${ORION_OTHER_NODES}
+  #     - ORION_NODEURL=http://member3orion:8080
+  #     - ORION_CLIENTURL=http://member3orion:8888
+  #     - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
+  #     - JAVA_TOOL_OPTIONS=-Xmx2G
+  #     - JDK_JAVA_OPTIONS=-Xmx2G
+  #     - JAVA_OPTS=-Xmx2G
+  #   volumes:
+  #     - ./config/orion/orion.conf:/config/orion.conf
+  #     - ./config/orion/networkFiles/orion3:/keys/
+  #     - ./logs/orion:/tmp/orion
+  #     - ./config/orion/log-config.xml:/config/log-config.xml
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.28
+
+  member3orion:
+    << : *tessera-def
+    environment:
+      - PRIVATE_CONFIG=${PRIVATE_CONFIG:-/data/tm/tm.ipc}
+      - TESSERA_CONFIG_TYPE="-09"
+      - NODE_ID=1
+    volumes:
+      - ./config/orion/networkFiles/orion3:/config/keys
+      - member3volume:/data
+    networks:
+      quorum-dev-quickstart:
+        ipv4_address: 172.16.239.28
+
+  # ethsignerProxy:
+  #   << : *ethsignerProxy-def
+  #   volumes:
+  #     - ./config/ethsigner/password:/opt/ethsigner/passwordfile
+  #     - ./config/ethsigner/key:/opt/ethsigner/keyfile
+  #   depends_on:
+  #     - validator1
+  #     - rpcnode
+  #   ports:
+  #     - 18545:8545/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.40
+
+
+
+  # explorer:
+  #   build: block-explorer-light/.
+  #   image: quorum-dev-quickstart/block-explorer-light:develop
+  #   depends_on:
+  #     - member1besu
+  #   ports:
+  #     - 25000:80/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.31
+  # rpcnode:
+  #   << : *besu-def
+  #   volumes:
+  #     - public-keys:/opt/besu/public-keys/
+  #     - ./config/besu/config.toml:/config/config.toml
+  #     - ./config/besu/permissions_config${NETWORK_SIZE}.toml:/config/permissions_config.toml
+  #     - ./config/besu/static-nodes${NETWORK_SIZE}.json:/config/static-nodes.json
+  #     - ./config/besu/log-config.xml:/config/log-config.xml
+  #     - ./logs/besu:/var/log/
+  #     - ./config/besu/${BESU_CONS_ALGO:-ibft2}Genesis.json:/config/genesis.json
+  #     - ./config/besu/networkFiles/rpcnode/keys:/opt/besu/keys
+  #   depends_on:
+  #     - member1besu
+  #   ports:
+  #     - 8545:8545/tcp
+  #     - 8546:8546/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.15
+
+  # prometheus:
+  #   image: "prom/prometheus"
+  #   volumes:
+  #     - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus:/prometheus
+  #   command:
+  #     - --config.file=/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - 9090:9090/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.32
+
+  # grafana:
+  #   image: "grafana/grafana"
+  #   environment:
+  #     - GF_AUTH_ANONYMOUS_ENABLED=true
+  #   volumes:
+  #     - ./config/grafana/provisioning/:/etc/grafana/provisioning/
+  #     - grafana:/var/lib/grafana
+  #   ports:
+  #     - 3000:3000/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.33
+
+
+
+
+
+
+volumes:
+  public-keys:
+
+  prometheus:
+
+  grafana:
+
+  cakeshop:
+  
+  member1volume:
+  member2volume:
+  member3volume:
+
+networks:
+  quorum-dev-quickstart:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.239.0/24

@@ -1,0 +1,145 @@
+---
+version: '3.6'
+
+x-besu-def:
+  &besu-def
+  restart: "on-failure"
+  image: hyperledger/besu:${BESU_VERSION:-latest}
+  environment:
+    - LOG4J_CONFIGURATION_FILE=/config/log-config.xml
+  entrypoint:
+    - /bin/bash
+    - -c
+    - |
+      while [ ! -f "/opt/besu/public-keys/bootnode_pubkey" ]; do sleep 5; done ;
+      /opt/besu/bin/besu \
+      --config-file=/config/config.toml \
+      --p2p-host=$$(hostname -i) \
+      --genesis-file=/config/genesis.json \
+      --node-private-key-file=/opt/besu/keys/key \
+      --min-gas-price=0 \
+      --rpc-http-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} \
+      --rpc-ws-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} ;
+
+# x-ethsignerProxy-def:
+#   &ethsignerProxy-def
+#   image: consensys/quorum-ethsigner:${QUORUM_ETHSIGNER_VERSION:-latest}
+#   command: [
+#     "--chain-id=2018",
+#     "--http-listen-host=0.0.0.0",
+#     "--downstream-http-port=8545",
+#     "--downstream-http-host=rpcnode",
+#     "file-based-signer",
+#     "-k",
+#     "/opt/ethsigner/keyfile",
+#     "-p",
+#     "/opt/ethsigner/passwordfile"
+#   ]
+#   ports:
+#     - 8545
+
+services:
+  member4besu:
+    << : *besu-def
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        while [ ! -f "/opt/besu/public-keys/bootnode_pubkey" ]; do sleep 5; done ;
+        /opt/besu/bin/besu \
+        --config-file=/config/config.toml \
+        --p2p-host=$$(hostname -i) \
+        --genesis-file=/config/genesis.json \
+        --node-private-key-file=/opt/besu/keys/key \
+        --min-gas-price=0 \
+        --rpc-http-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} \
+        --rpc-ws-api=EEA,WEB3,ETH,NET,PRIV,PERM,${BESU_CONS_API:-IBFT} ;
+    volumes:
+      - public-keys:/opt/besu/public-keys/
+      - ./config/besu/config.toml:/config/config.toml
+      - ./config/besu/permissions_config${NETWORK_SIZE}.toml:/config/permissions_config.toml
+      - ./config/besu/static-nodes${NETWORK_SIZE}.json:/config/static-nodes.json
+      - ./config/besu/log-config.xml:/config/log-config.xml
+      - ./logs/besu:/tmp/besu
+      - ./config/besu/${BESU_CONS_ALGO:-ibft2}Genesis.json:/config/genesis.json
+      - ./config/besu/networkFiles/member4/keys:/opt/besu/keys
+    ports:
+      - 20006:8545/tcp
+      - 20007:8546/tcp
+    networks:
+      quorum-dev-quickstart:
+        ipv4_address: 172.16.239.19
+
+  # ethsignerProxy:
+  #   << : *ethsignerProxy-def
+  #   volumes:
+  #     - ./config/ethsigner/password:/opt/ethsigner/passwordfile
+  #     - ./config/ethsigner/key:/opt/ethsigner/keyfile
+  #   depends_on:
+  #     - validator1
+  #     - rpcnode
+  #   ports:
+  #     - 18545:8545/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.40
+
+
+
+  # explorer:
+  #   build: block-explorer-light/.
+  #   image: quorum-dev-quickstart/block-explorer-light:develop
+  #   depends_on:
+  #     - rpcnode
+  #   ports:
+  #     - 25000:80/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.31
+
+  # prometheus:
+  #   image: "prom/prometheus"
+  #   volumes:
+  #     - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus:/prometheus
+  #   command:
+  #     - --config.file=/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - 9090:9090/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.32
+
+  # grafana:
+  #   image: "grafana/grafana"
+  #   environment:
+  #     - GF_AUTH_ANONYMOUS_ENABLED=true
+  #   volumes:
+  #     - ./config/grafana/provisioning/:/etc/grafana/provisioning/
+  #     - grafana:/var/lib/grafana
+  #   ports:
+  #     - 3000:3000/tcp
+  #   networks:
+  #     quorum-dev-quickstart:
+  #       ipv4_address: 172.16.239.33
+
+
+
+
+
+
+volumes:
+  public-keys:
+
+  prometheus:
+
+  grafana:
+
+  cakeshop:
+
+networks:
+  quorum-dev-quickstart:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.239.0/24

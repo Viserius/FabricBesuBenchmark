@@ -1,0 +1,47 @@
+params:
+    numberOfAssets: &numberOfAssets 200 # multiple of number of workers
+    numberOfWarmupTxs: &numberOfWarmupTxs 2000 # multiple of number of assets
+    numberOfTxs: &numberOfTxs 6000 # multiple of number of assets
+    tps: &tps 400
+    numOfOrgs: &numOfOrgs 3
+    isPrivate: &isPrivate 1
+
+test:
+    workers:
+        type: local
+        number: 2
+    rounds:
+    - label: createAssets
+      txNumber: *numberOfAssets
+      rateControl: { type: 'fixed-rate', opts: { tps: 20 } }
+      workload:
+          module: ./workload/fabnft-create.js
+          arguments:
+              numberOfAssets: *numberOfAssets
+              numOfOrgs: *numOfOrgs
+              isPrivate: *isPrivate
+    - label: warmup
+      txNumber: *numberOfWarmupTxs
+      rateControl: { type: 'fixed-rate', opts: { tps: *tps } }
+      workload:
+          module: ./workload/fabnft-transfer.js
+          arguments:
+              numberOfAssets: *numberOfAssets
+              numOfOrgs: *numOfOrgs
+              isPrivate: *isPrivate
+    - label: transfer
+      txNumber: *numberOfTxs
+      rateControl: { type: 'fixed-rate', opts: { tps: *tps } }
+      workload:
+          module: ./workload/fabnft-transfer.js
+          arguments:
+              numberOfAssets: *numberOfAssets
+              numOfOrgs: *numOfOrgs
+              isPrivate: *isPrivate
+monitors:
+  resource:
+  - module: docker
+    options:
+      interval: 5
+      containers:
+      - all

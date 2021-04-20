@@ -1,0 +1,13 @@
+# FabricBesuBenchmark
+The code in this repository is made public for reference purposes only and were used for the Master's thesis "*Permissioned Blockchains: A Comparative Study. A Deep Dive into Hyperledger Fabric and Hyperledger Besu*" as uploaded to the Student Thesis Repository of the University of Groningen. The thesis can be found here: https://fse.studenttheses.ub.rug.nl. Below, a high-level overview is given of the contents of this repository.
+
+1. The `benchmarkdata` folder includes the raw Hyperledger Caliper reports resulting from benchmark execution, as well as the aggregated results.
+2. The `besu` folder includes the scripts and files used to create and start a Hyperledger Besu network using Docker for performance benchmarking. It is recommended to use the `generate.sh` file for some small configurations and launching everything.
+3. The `caliper-workspace` folder contains the configuration used to configure Hyperledger Caliper to conduct the benchmarks for both Fabric and Besu. Various scripts are present for launching the benchmarks.
+4. The `drawio` folder contains the files used to create the figures in the thesis. The `.drawio`, as well as the `.pdf`- and `.tgn`-files, can be imported on https://app.diagrams.net.
+5. The `fabric-samples` folder contains a number of mock smart contract implementations for Hyperledger Fabric, as provided by https://github.com/hyperledger/fabric-samples. 
+6. The `Hyperledger-Fabric2-0-configurator` folder contains scripts to quickly generate and launch a Hyperledger Fabric network. These files are based on the work of `JulianD267` as seen here https://github.com/JulianD267/Hyperledger-Fabric2-0-configurator. Some files have been changed to make them suitable for the thesis.
+7. The `results` folder includes the Matlab scripts and generated charts, representing the results of the benchmarks.
+8. The `demo_besumarker_pubnetwork.js`-file includes a script written to test the creation and execution of an arbitrary transaction to a non-SCA address using arbitrary payload data on the Ropsten network, representing the test on whether a privacy marker transaction would work on regular Ethereum nodes.
+9. The `demo_different_CC.sh`-file includes the steps for reproducing the Fabric aspect in which different chaincode implementations can be deployed, approved as being the same chaincode, and used.
+10. The `README.md`-file is the information presented here.

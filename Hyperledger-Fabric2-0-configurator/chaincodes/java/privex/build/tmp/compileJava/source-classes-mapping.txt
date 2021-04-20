@@ -1,0 +1,9 @@
+org/hyperledger/fabric/samples/privatedata/Asset.java
+ org.hyperledger.fabric.samples.privatedata.Asset
+org/hyperledger/fabric/samples/privatedata/AssetPrivateDetails.java
+ org.hyperledger.fabric.samples.privatedata.AssetPrivateDetails
+org/hyperledger/fabric/samples/privatedata/AssetTransfer.java
+ org.hyperledger.fabric.samples.privatedata.AssetTransfer
+ org.hyperledger.fabric.samples.privatedata.AssetTransfer$AssetTransferErrors
+org/hyperledger/fabric/samples/privatedata/TransferAgreement.java
+ org.hyperledger.fabric.samples.privatedata.TransferAgreement

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="8.21">
+<file name="/mnt/c/Users/soelm/Desktop/Repositories/FabricBesuBenchmark/Hyperledger-Fabric2-0-configurator/chaincodes/java/privex/src/main/java/org/hyperledger/fabric/samples/privatedata/Asset.java">
+</file>
+<file name="/mnt/c/Users/soelm/Desktop/Repositories/FabricBesuBenchmark/Hyperledger-Fabric2-0-configurator/chaincodes/java/privex/src/main/java/org/hyperledger/fabric/samples/privatedata/AssetPrivateDetails.java">
+</file>
+<file name="/mnt/c/Users/soelm/Desktop/Repositories/FabricBesuBenchmark/Hyperledger-Fabric2-0-configurator/chaincodes/java/privex/src/main/java/org/hyperledger/fabric/samples/privatedata/AssetTransfer.java">
+</file>
+<file name="/mnt/c/Users/soelm/Desktop/Repositories/FabricBesuBenchmark/Hyperledger-Fabric2-0-configurator/chaincodes/java/privex/src/main/java/org/hyperledger/fabric/samples/privatedata/TransferAgreement.java">
+</file>
+</checkstyle>

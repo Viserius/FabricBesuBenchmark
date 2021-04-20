@@ -1,0 +1,14 @@
+#!/bin/bash
+if [ $# -lt 3 ]; then
+	echo "usage:  ./invoke <SmartContract> <Function> <args> "
+	echo "Note that args need to be an array of strings, with ESCAPED quotes. "
+	echo "Example: ./invoke fabric-authtoken createAuthToken [\"test\"] "
+	exit 1
+fi
+CHANNEL_ID=mychannel
+source peer_vars.sh
+FUNCTION=$2
+SMARTCONTRACT=$1
+ARGS=$3
+echo -e "Invoking $FUNCTION of $SMARTCONTRACT on $CHANNEL_ID with $ARGS"
+peer chaincode invoke $ORDERERS -C $CHANNEL_ID -n $SMARTCONTRACT $PEER_CON_PARAMS -c "{\"function\": \"$FUNCTION\", \"Args\": $ARGS}"

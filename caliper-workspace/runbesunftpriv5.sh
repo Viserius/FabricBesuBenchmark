@@ -1,0 +1,2 @@
+node ../../caliper/packages/caliper-cli/caliper.js bind --caliper-bind-sut besu:latest
+node ../../caliper/packages/caliper-cli/caliper.js launch manager --caliper-workspace ./ --caliper-networkconfig networks/besunftpriv5.json --caliper-benchconfig benchmarks/besunft.yaml

@@ -1,0 +1,4 @@
+org/hyperledger/fabric/samples/nftpub/Asset.java
+ org.hyperledger.fabric.samples.nftpub.Asset
+org/hyperledger/fabric/samples/nftpub/NftPub.java
+ org.hyperledger.fabric.samples.nftpub.NftPub

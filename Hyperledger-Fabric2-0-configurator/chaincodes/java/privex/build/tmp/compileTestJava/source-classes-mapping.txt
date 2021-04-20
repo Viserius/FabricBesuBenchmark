@@ -1,0 +1,4 @@
+org/hyperledger/fabric/samples/privatedata/AssetTransferTest.java
+ org.hyperledger.fabric.samples.privatedata.AssetTransferTest
+ org.hyperledger.fabric.samples.privatedata.AssetTransferTest$InvokeWriteTransaction
+ org.hyperledger.fabric.samples.privatedata.AssetTransferTest$QueryReadAssetTransaction

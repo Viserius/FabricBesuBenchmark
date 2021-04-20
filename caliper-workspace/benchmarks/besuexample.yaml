@@ -1,0 +1,44 @@
+params:
+    numberOfAccounts: &accounts 2000
+    accountPhasePrefix: &prefix test
+
+test:
+    workers:
+        type: local
+        number: 2
+    rounds:
+    - label: open
+      txNumber: *accounts
+      trim: 100
+      rateControl: { type: 'fixed-rate', opts: { tps: 400 } }
+      workload:
+          module: ./workload/besuexample-open.js
+          arguments:
+              accountPhasePrefix: *prefix
+              money: 10000
+    - label: query
+      txNumber: *accounts
+      trim: 100
+      rateControl: { type: 'fixed-rate', opts: { tps: 400 } }
+      workload:
+          module: ./workload/besuexample-query.js
+          arguments:
+              numberOfAccounts: *accounts
+              accountPhasePrefix: *prefix
+    - label: transfer
+      txNumber: *accounts
+      trim: 100
+      rateControl: { type: 'fixed-rate', opts: { tps: 400 } }
+      workload:
+          module: ./workload/besuexample-transfer.js
+          arguments:
+              accountPhasePrefix: *prefix
+              numberOfAccounts: *accounts
+              money: 1
+monitors:
+  resource:
+  - module: docker
+    options:
+      interval: 5
+      containers:
+      - all

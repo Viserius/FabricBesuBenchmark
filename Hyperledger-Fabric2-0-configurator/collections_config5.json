@@ -1,0 +1,11 @@
+[
+ {
+   "name": "assetCollection",
+   "policy": "OR('Org1MSP.member', 'Org2MSP.member', 'Org3MSP.member', 'Org4MSP.member', 'Org5MSP.member')",
+   "requiredPeerCount": 2,
+   "maxPeerCount": 2,
+   "blockToLive":0,
+   "memberOnlyRead": true,
+   "memberOnlyWrite": true
+ }
+]

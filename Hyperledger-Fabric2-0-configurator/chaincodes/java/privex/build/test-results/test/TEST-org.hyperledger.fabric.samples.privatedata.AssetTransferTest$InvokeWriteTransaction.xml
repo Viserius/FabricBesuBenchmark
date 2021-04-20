@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.hyperledger.fabric.samples.privatedata.AssetTransferTest$InvokeWriteTransaction" tests="3" skipped="0" failures="0" errors="0" timestamp="2021-04-28T09:17:40" hostname="APOLLO" time="0.205">
+  <properties/>
+  <testcase name="transferAssetWhenExistingAssetIsTransferred()" classname="org.hyperledger.fabric.samples.privatedata.AssetTransferTest$InvokeWriteTransaction" time="0.177"/>
+  <testcase name="createAssetWhenAssetExists()" classname="org.hyperledger.fabric.samples.privatedata.AssetTransferTest$InvokeWriteTransaction" time="0.014"/>
+  <testcase name="createAssetWhenNewAssetIsCreated()" classname="org.hyperledger.fabric.samples.privatedata.AssetTransferTest$InvokeWriteTransaction" time="0.013"/>
+  <system-out><![CDATA[TransferAsset: verify asset asset1 exists
+ReadTransferAgreement Get: collection assetCollection, ID asset1, Key transferAgreementasset1
+Transfer Asset: collection assetCollection, ID asset1 to owner TestOrg2User
+AgreeToTransfer deleteKey: collection assetCollection, ID asset1, Key transferAgreementasset1
+CreateAsset Put: collection assetCollection, ID asset1
+Put: collection assetCollection, ID {"owner":"testOrg1User","color":"blue","size":5,"assetID":"asset1","objectType":"testasset"}
+Put AssetPrivateDetails: collection TestOrg1PrivateCollection, ID asset1
+]]></system-out>
+  <system-err><![CDATA[Asset asset1 already exists
+]]></system-err>
+</testsuite>

@@ -1,0 +1,2 @@
+Installed chaincodes on peer:
+Package ID: fabnft_1:8cc9efed3d7104eb4bba7437b3bd5b1d6508cb57fe5976f6096c8e6299c4dd01, Label: fabnft_1

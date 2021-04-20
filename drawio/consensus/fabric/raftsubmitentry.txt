@@ -1,0 +1,25 @@
+# websequencediagrams.com
+title Creating a new Log Entry
+
+Client->+Leader: Submit Request R
+
+note over Client,Leader,Follower1,Follower2: Start of Propose Phase
+Leader->Leader: Append R to Log
+Leader->+Follower1: Instruct to append R to Log
+Leader->+Follower2: Instruct to append R to Log
+Follower1->Follower1: Append R to Log
+Follower2->Follower2: Append R to Log
+Follower1-->-Leader: Append Confirmed
+opt Not required due to majority reached
+    Follower2-->-Leader: Append Confirmed
+end
+
+note over Client,Leader,Follower1,Follower2: Majority has been reached.\nR is not considered committed.
+opt Any process may now fail. Eventually, R is executed on each node.
+    Leader->Leader: Execute R
+    Leader-->Client: Confirmation of R
+    Leader->+Follower1: Heartbeat (R=Committed)
+    Leader->+Follower2: Heartbeat (R=Committed)
+    Follower1->-Follower1: Execute R
+    Follower2->-Follower2: Execute R
+end

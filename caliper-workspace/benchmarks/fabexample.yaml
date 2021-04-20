@@ -1,0 +1,26 @@
+test:
+  name: basic-contract-benchmark
+  description: test benchmark
+  workers:
+    type: local
+    number: 2
+  rounds:
+    - label: readAsset
+      description: Read asset benchmark
+      txNumber: 2000
+      rateControl: 
+        type: fixed-rate
+        opts:
+          tps: 400
+      workload:
+        module: workload/fabexample.js
+        arguments:
+          contractId: basic
+          assets: 10
+monitors:
+  resource:
+  - module: docker
+    options:
+      interval: 5
+      containers:
+      - all

@@ -1,0 +1,253 @@
+Organizations:
+- &id006
+  Name: OrdererMSP
+  ID: OrdererMSP
+  MSPDir: crypto-config/ordererOrganizations/example.com/msp
+  Policies:
+    Readers:
+      Type: Signature
+      Rule: "OR('OrdererMSP.member')"
+    Writers:
+      Type: Signature
+      Rule: "OR('OrdererMSP.member')"
+    Admins:
+      Type: Signature
+      Rule: "OR('OrdererMSP.admin')"
+    Endorsement:
+      Type: Signature
+      Rule: "OR('OrdererMSP.member')"
+- &id008
+  Name: Org1MSP
+  ID: Org1MSP
+  MSPDir: crypto-config/peerOrganizations/org1.example.com/msp
+  Policies:
+    Readers:
+      Type: Signature
+      Rule: "OR('Org1MSP.member')"
+    Writers:
+      Type: Signature
+      Rule: "OR('Org1MSP.member')"
+    Admins:
+      Type: Signature
+      Rule: "OR('Org1MSP.admin')"
+    Endorsement:
+      Type: Signature
+      Rule: "OR('Org1MSP.member')"
+  AnchorPeers:
+  - Host: peer0.org1.example.com
+    Port: 7051
+- &id009
+  Name: Org2MSP
+  ID: Org2MSP
+  MSPDir: crypto-config/peerOrganizations/org2.example.com/msp
+  Policies:
+    Readers:
+      Type: Signature
+      Rule: "OR('Org2MSP.member')"
+    Writers:
+      Type: Signature
+      Rule: "OR('Org2MSP.member')"
+    Admins:
+      Type: Signature
+      Rule: "OR('Org2MSP.admin')"
+    Endorsement:
+      Type: Signature
+      Rule: "OR('Org2MSP.member')"
+  AnchorPeers:
+  - Host: peer0.org2.example.com
+    Port: 7051
+- &id010
+  Name: Org3MSP
+  ID: Org3MSP
+  MSPDir: crypto-config/peerOrganizations/org3.example.com/msp
+  Policies:
+    Readers:
+      Type: Signature
+      Rule: "OR('Org3MSP.member')"
+    Writers:
+      Type: Signature
+      Rule: "OR('Org3MSP.member')"
+    Admins:
+      Type: Signature
+      Rule: "OR('Org3MSP.admin')"
+    Endorsement:
+      Type: Signature
+      Rule: "OR('Org3MSP.member')"
+  AnchorPeers:
+  - Host: peer0.org3.example.com
+    Port: 7051
+- &id011
+  Name: Org4MSP
+  ID: Org4MSP
+  MSPDir: crypto-config/peerOrganizations/org4.example.com/msp
+  Policies:
+    Readers:
+      Type: Signature
+      Rule: "OR('Org4MSP.member')"
+    Writers:
+      Type: Signature
+      Rule: "OR('Org4MSP.member')"
+    Admins:
+      Type: Signature
+      Rule: "OR('Org4MSP.admin')"
+    Endorsement:
+      Type: Signature
+      Rule: "OR('Org4MSP.member')"
+  AnchorPeers:
+  - Host: peer0.org4.example.com
+    Port: 7051
+- &id012
+  Name: Org5MSP
+  ID: Org5MSP
+  MSPDir: crypto-config/peerOrganizations/org5.example.com/msp
+  Policies:
+    Readers:
+      Type: Signature
+      Rule: "OR('Org5MSP.member')"
+    Writers:
+      Type: Signature
+      Rule: "OR('Org5MSP.member')"
+    Admins:
+      Type: Signature
+      Rule: "OR('Org5MSP.admin')"
+    Endorsement:
+      Type: Signature
+      Rule: "OR('Org5MSP.member')"
+  AnchorPeers:
+  - Host: peer0.org5.example.com
+    Port: 7051
+Capabilities:
+  Channel: &id003
+    V2_0: true
+  Orderer: &id002
+    V2_0: true
+  Application: &id001
+    V2_0: true
+Application: &id013
+  ACLs:
+    _lifecycle/CheckCommitReadiness: /Channel/Application/Writers
+    _lifecycle/CommitChaincodeDefinition: /Channel/Application/Writers
+    _lifecycle/QueryChaincodeDefinition: /Channel/Application/Readers
+    _lifecycle/QueryChaincodeDefinitions: /Channel/Application/Readers
+    lscc/ChaincodeExists: /Channel/Application/Readers
+    lscc/GetDeploymentSpec: /Channel/Application/Readers
+    lscc/GetChaincodeData: /Channel/Application/Readers
+    lscc/GetInstantiatedChaincodes: /Channel/Application/Readers
+    qscc/GetChainInfo: /Channel/Application/Readers
+    qscc/GetBlockByNumber: /Channel/Application/Readers
+    qscc/GetBlockByHash: /Channel/Application/Readers
+    qscc/GetTransactionByID: /Channel/Application/Readers
+    qscc/GetBlockByTxID: /Channel/Application/Readers
+    cscc/GetConfigBlock: /Channel/Application/Readers
+    cscc/GetConfigTree: /Channel/Application/Readers
+    cscc/SimulateConfigTreeUpdate: /Channel/Application/Readers
+    peer/Propose: /Channel/Application/Writers
+    peer/ChaincodeToChaincode: /Channel/Application/Readers
+    event/Block: /Channel/Application/Readers
+    event/FilteredBlock: /Channel/Application/Readers
+  Organizations:
+  Policies:
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *id001
+Orderer: &id005
+  Addresses:
+  - orderer1.example.com:7050
+  - orderer2.example.com:7050
+  BatchTimeout: 2s
+  BatchSize:
+    MaxMessageCount: 500
+    AbsoluteMaxBytes: 10000 KB
+    PreferredMaxBytes: 2000 KB
+  MaxChannels: 0
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *id002
+  OrdererType: etcdraft
+  EtcdRaft: &id007
+    Consenters:
+    - Host: orderer1.example.com
+      Port: 7050
+      ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer1.example.com/tls/server.crt
+      ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer1.example.com/tls/server.crt
+    - Host: orderer2.example.com
+      Port: 7050
+      ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+      ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+Channel: &id004
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *id003
+Profiles:
+  OrdererDefault:
+    <<: *id004
+    Capabilities:
+      <<: *id003
+    Orderer:
+      <<: *id005
+      Addresses:
+      - orderer1.example.com:7050
+      - orderer2.example.com:7050
+      Organizations:
+      - *id006
+      Capabilities:
+        <<: *id002
+      OrdererType: etcdraft
+      EtcdRaft: *id007
+    Consortiums:
+      WebConsortium:
+        Organizations:
+        - *id008
+        - *id009
+        - *id010
+        - *id011
+        - *id012
+  MainChannel:
+    <<: *id004
+    Consortium: WebConsortium
+    Application:
+      <<: *id013
+      Organizations:
+      - *id008
+      - *id009
+      - *id010
+      - *id011
+      - *id012
+    Capabilities:
+      <<: *id001

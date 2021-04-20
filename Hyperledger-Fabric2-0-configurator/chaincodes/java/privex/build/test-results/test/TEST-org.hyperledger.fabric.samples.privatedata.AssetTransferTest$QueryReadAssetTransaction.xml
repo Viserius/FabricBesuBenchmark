@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.hyperledger.fabric.samples.privatedata.AssetTransferTest$QueryReadAssetTransaction" tests="3" skipped="0" failures="0" errors="0" timestamp="2021-04-28T09:17:36" hostname="APOLLO" time="4.661">
+  <properties/>
+  <testcase name="whenAssetExists()" classname="org.hyperledger.fabric.samples.privatedata.AssetTransferTest$QueryReadAssetTransaction" time="4.599"/>
+  <testcase name="whenAssetDoesNotExist()" classname="org.hyperledger.fabric.samples.privatedata.AssetTransferTest$QueryReadAssetTransaction" time="0.013"/>
+  <testcase name="invokeUnknownTransaction()" classname="org.hyperledger.fabric.samples.privatedata.AssetTransferTest$QueryReadAssetTransaction" time="0.046"/>
+  <system-out><![CDATA[ReadAsset: collection assetCollection, ID asset1
+ReadAsset: collection assetCollection, ID asset1
+Asset not found: ID asset1
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

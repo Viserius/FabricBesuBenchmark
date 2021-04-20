@@ -1,0 +1,2 @@
+node ../../caliper/packages/caliper-cli/caliper.js bind --caliper-bind-sut fabric:2.2
+node ../../caliper/packages/caliper-cli/caliper.js launch manager --caliper-workspace ./ --caliper-networkconfig networks/fabnft3.yaml --caliper-benchconfig benchmarks/fabnft3pub.yaml --caliper-flow-only-test --caliper-fabric-gateway-enabled --caliper-fabric-gateway-localhost true

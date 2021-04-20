@@ -1,0 +1,4 @@
+org/hyperledger/fabric/samples/nftpriv/Asset.java
+ org.hyperledger.fabric.samples.nftpriv.Asset
+org/hyperledger/fabric/samples/nftpriv/NftPriv.java
+ org.hyperledger.fabric.samples.nftpriv.NftPriv
